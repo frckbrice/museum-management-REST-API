@@ -7,11 +7,16 @@ import { getServerConfig } from "./server/utils/helper-function";
 import { env } from "./config/env/env-validation";
 import { requestLogger } from "./middlewares/logger";
 import { logger } from "./config/logger/logger-config";
+import { requestIdMiddleware } from "./middlewares/request-id";
 
 const PORT = env.PORT;
 const NODE_ENV = env.NODE_ENV;
 
 const app = express();
+
+// Request ID middleware - should be early in the middleware chain
+app.use(requestIdMiddleware);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // cors

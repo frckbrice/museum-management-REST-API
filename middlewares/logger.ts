@@ -20,6 +20,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   res.on('finish', () => {
     const duration = Date.now() - start;
     const logData = {
+      requestId: req.requestId,
       method: req.method,
       path: req.path,
       statusCode: res.statusCode,
