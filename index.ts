@@ -2,15 +2,12 @@ import express from "express";
 import { registerRoutes } from "./server/routes";
 import cors from "cors";
 import corsOptions from "./config/cors/cors-options";
-import dotenv from "dotenv";
 import errorHandler from "./middlewares/errors/error-handler";
 import { getServerConfig } from "./server/utils/helper-function";
+import { env } from "./config/env/env-validation";
 
-
-dotenv.config();
-
-const PORT = process.env.PORT || 5001;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = env.PORT;
+const NODE_ENV = env.NODE_ENV;
 
 const app = express();
 app.use(express.json());

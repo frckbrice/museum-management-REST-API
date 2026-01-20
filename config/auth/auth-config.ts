@@ -31,18 +31,18 @@ export async function comparePasswords(supplied: string, stored: string) {
 }
 
 
-export function configureAuth(app: Express) {
-    const sessionSecret = process.env.SESSION_SECRET || "museum_secret";
+import { env } from "../env/env-validation";
 
+export function configureAuth(app: Express) {
     const sessionSettings: session.SessionOptions = {
-        secret: sessionSecret,
+        secret: env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         store: sessionService.getSessionStore(),
         cookie: {
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: env.NODE_ENV === "production",
         }
     };
 
