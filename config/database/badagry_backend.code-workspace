@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../badagry-frontend"
+		},
+		{
+			"path": "../../../museumCall_backend"
+		},
+		{
+			"path": "../../../museumCall-frontend"
+		}
+	],
+	"settings": {}
+}
