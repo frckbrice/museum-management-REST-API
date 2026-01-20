@@ -1,21 +1,37 @@
-import { logEvents } from "../logger";
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '../../config/logger/logger-config';
 
-const errorHandler = (err: any, req: any, res: any, next: any) => {
-    if (logEvents)
-        logEvents(
-            `${err.name}:${err.message}\t${req.method}\t${req.url}\t${req.headers.origin}`, 'errLog.log');
+const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+    const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
 
-    console.error("\n\n hit error handler  \n\n");
-    const statusCode = res.statusCode ? res.statusCode : 500; // Server Error
-    res.status(statusCode).send({
-        message: err.message,
-        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack,
-        method: req.method,
-        origin: req.url,
-        timestamp: new Date().toISOString(),
+    // Log error with structured data
+    logger.error('Error occurred', {
+        error: {
+            name: err.name,
+            message: err.message,
+            stack: err.stack,
+        },
+        request: {
+            method: req.method,
+            url: req.url,
+            path: req.path,
+            ip: req.ip,
+            userAgent: req.get('user-agent'),
+            origin: req.get('origin'),
+        },
+        statusCode,
     });
 
-    next(err);
+    // Send error response
+    res.status(statusCode).json({
+        success: false,
+        error: {
+            message: err.message,
+            ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path,
+    });
 };
 
 // Custom error classes for better error handling

@@ -5,6 +5,8 @@ import corsOptions from "./config/cors/cors-options";
 import errorHandler from "./middlewares/errors/error-handler";
 import { getServerConfig } from "./server/utils/helper-function";
 import { env } from "./config/env/env-validation";
+import { requestLogger } from "./middlewares/logger";
+import { logger } from "./config/logger/logger-config";
 
 const PORT = env.PORT;
 const NODE_ENV = env.NODE_ENV;
@@ -15,35 +17,8 @@ app.use(express.urlencoded({ extended: false }));
 // cors
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api/v1")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      console.log(logLine);
-    }
-  });
-
-  next();
-});
+// Request logging middleware
+app.use(requestLogger);
 
 (async () => {
   const serverConfig = getServerConfig();
@@ -55,10 +30,12 @@ app.use((req, res, next) => {
   server.listen(
     PORT,
     () => {
-      console.log(`🚀 Server running in ${NODE_ENV} mode`);
-      console.log(`🌐 Server URL: ${serverConfig.url}`);
-      console.log(`📡 Server is  Listening on ${serverConfig.host}:${serverConfig.port}`);
-
+      logger.info('Server started successfully', {
+        mode: NODE_ENV,
+        url: serverConfig.url,
+        host: serverConfig.host,
+        port: serverConfig.port,
+      });
     }
   );
 })();
