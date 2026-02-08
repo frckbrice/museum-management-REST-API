@@ -37,6 +37,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/drizzle.config.ts ./
+# Landing page at GET / (public/index.html)
+COPY public ./public/
 
 # Non-root user for security
 RUN addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
