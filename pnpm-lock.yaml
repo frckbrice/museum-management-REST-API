@@ -142,7 +142,7 @@ importers:
         specifier: ^1.0.38
         version: 1.0.38
       '@types/pg':
-        specifier: ^8.15.4
+        specifier: 8.16.0
         version: 8.16.0
       '@types/supertest':
         specifier: ^6.0.2
