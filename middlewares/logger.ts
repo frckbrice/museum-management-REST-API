@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../config/logger/logger-config';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../config/logger/logger-config";
 
 /**
  * Request logging middleware
- * Logs all incoming HTTP requests with structured data
+ * Logs all incoming HTTP requests with structured data (includes requestId when available)
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
@@ -17,27 +17,27 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   };
 
   // Log when response finishes
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - start;
     const logData = {
-      requestId: req.requestId,
+      ...(req.requestId && { requestId: req.requestId }),
       method: req.method,
       path: req.path,
       statusCode: res.statusCode,
       duration: `${duration}ms`,
       ip: req.ip,
-      userAgent: req.get('user-agent'),
-      origin: req.get('origin'),
-      contentLength: res.get('content-length'),
+      userAgent: req.get("user-agent"),
+      origin: req.get("origin"),
+      contentLength: res.get("content-length"),
     };
 
     // Log level based on status code
     if (res.statusCode >= 500) {
-      logger.error('HTTP Request', logData);
+      logger.error("HTTP Request", logData);
     } else if (res.statusCode >= 400) {
-      logger.warn('HTTP Request', logData);
+      logger.warn("HTTP Request", logData);
     } else {
-      logger.info('HTTP Request', logData);
+      logger.info("HTTP Request", logData);
     }
   });
 

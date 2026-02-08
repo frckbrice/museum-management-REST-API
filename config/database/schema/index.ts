@@ -49,10 +49,4 @@ import * as schemaTypes from "./schema-types";
 //     },
 // };
 
-
-export {
-    schema,
-    relations,
-    enums,
-    schemaTypes,
-};
+export { schema, relations, enums, schemaTypes };

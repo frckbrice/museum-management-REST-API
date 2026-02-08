@@ -1,0 +1,7 @@
+# EditorConfig: keep indentation consistent so format-on-save doesn't break spec.ts
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf

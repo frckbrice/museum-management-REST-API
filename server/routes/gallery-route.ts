@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { galleryController } from '../controllers';
-
+import { galleryController } from "../controllers";
 
 const router = Router();
 
@@ -15,6 +14,5 @@ router.post("/galleries", galleryController.createGalleryItem);
 
 // get gallery item by category
 router.get("/galleries/categories/:category", galleryController.getGalleryItemsByCategory);
-
 
 export default router;

@@ -4,21 +4,20 @@
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": ".",
-  "strict": true, // Must be false to fully suppress type errors
-  "moduleResolution": "node",
+    "strict": true, // Must be false to fully suppress type errors
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true, // Moved inside compilerOptions
-    "types": [
-      "node",
-      "jest"
-    ],
     "resolveJsonModule": true
   },
   "include": [
     "index.ts",
+    "app.ts",
     "server/**/*.ts",
     "config/**/*.ts",
     "middlewares/**/*.ts",
+    "types/**/*.d.ts",
+    "types/**/*.ts",
     "drizzle.config.ts"
   ],
   "exclude": [

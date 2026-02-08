@@ -1,321 +1,142 @@
-# Museum  management REST-API 
+# Museum Management REST API
 
-A comprehensive RESTful API server for a digital museum platform, providing content management, user authentication, booking systems, and community forum features with real-time capabilities.
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white" alt="Express" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Drizzle_ORM-ORM-FF4785?style=flat-square" alt="Drizzle ORM" />
+  <img src="https://img.shields.io/badge/OpenAPI-3.0-6BA539?style=flat-square&logo=openapi-initiative&logoColor=white" alt="OpenAPI" />
+  <img src="https://img.shields.io/badge/Zod-Validation-3E67B1?style=flat-square" alt="Zod" />
+  <img src="https://img.shields.io/badge/WebSocket-ws-010101?style=flat-square&logo=socket.io&logoColor=white" alt="WebSocket" />
+</p>
 
-## Overview
+Production-ready REST API for a digital museum platform: content, auth, bookings, forum, and real-time features. Built with a **modular, microservice-friendly** design and standard Web API practices.
 
-This API serves as the backend infrastructure for a museum's digital presence, enabling visitors to explore historical content, book tours, engage in community discussions, and access gallery collections through a modern web platform.
+## Key features
 
-## Technology Stack
+| Capability | Description |
+|------------|-------------|
+| **RESTful API design** | Versioned base path (`/api/v1`), standard HTTP verbs (GET, POST, PUT, PATCH, DELETE), appropriate status codes (2xx, 4xx, 5xx), and JSON request/response bodies aligned with Web API best practices. |
+| **Interactive API documentation** | OpenAPI 3.0 specification with Swagger UI at `GET /api-docs` and machine-readable spec at `GET /api-docs.json` for client generation and integration. |
+| **Structured error handling** | Consistent JSON error payloads with `success`, `error.message`, `requestId`, `timestamp`, and `path`; 404 responses for unknown routes and predictable error semantics across all endpoints. |
+| **Security & observability** | Helmet security headers, CORS policies, global and login-specific rate limiting, environment validation at startup, and health/live/ready probes for orchestration and monitoring. |
+| **Testable architecture** | App factory pattern decouples app creation from server binding; unit and integration tests with automated CI pipeline (lint, typecheck, test, build). |
 
-- **Runtime**: Node.js 18+
-- **Language**: TypeScript 5.0+
-- **Framework**: Express.js 4.x
-- **Database**: PostgreSQL 15+ (supports local and Neon serverless)
-- **ORM**: Drizzle ORM
-- **Authentication**: Passport.js with local strategy
-- **File Storage**: Cloudinary via Multer
-- **Validation**: Zod
-- **Real-time**: WebSocket (ws library)
-- **Session Management**: express-session with PostgreSQL store
+## Tech stack
 
-## Features
-
-### Core Functionality
-
-- **Authentication & Authorization**: Secure user registration and login with role-based access control (visitor, attendant, admin)
-- **Historical Content Management**: Rich educational content with SEO-optimized routing and slug-based URLs
-- **Gallery Management**: Categorized image collections with metadata and Cloudinary integration
-- **Booking System**: Tour reservations with real-time status updates via WebSocket
-- **Community Forum**: Interactive discussions with post likes, comments, and attendant-only sections
-- **Contact Management**: Visitor inquiry handling and communication system
-- **Admin Features**: Administrative functions for content and user management
-
-### Technical Features
-
-- Full TypeScript implementation with strict type checking
-- Zod schema validation for request/response data
-- Drizzle ORM with PostgreSQL support
-- Cross-platform database support (local PostgreSQL and Neon serverless)
-- Secure session handling with PostgreSQL session store
-- Advanced querying with pagination, filtering, and relationship queries
-- Connection pooling and efficient database operations
-- Rate limiting for login attempts
-- Comprehensive error handling middleware
-- Request logging and monitoring
+| Layer      | Choice                               |
+| ---------- | ------------------------------------ |
+| Runtime    | Node.js 18+                          |
+| Language   | TypeScript (strict)                  |
+| Framework  | Express 4.x                          |
+| Database   | PostgreSQL (local + Neon serverless) |
+| ORM        | Drizzle ORM                          |
+| Auth       | Passport.js (local), session-based   |
+| Validation | Zod                                  |
+| Security   | Helmet, CORS, rate limiting          |
+| Real-time  | WebSocket (ws)                       |
 
 ## Architecture
 
-### Database Schema
+- **Modular domains**: Each feature (history, gallery, bookings, forum, contact, admin, auth, users) lives in its own routes/controllers/services so domains can be split into microservices later.
+- **App factory**: `createApp()` builds the Express app without starting the server for testability and clean process boundaries.
+- **Env-first**: Config validated at startup via Zod; invalid env fails fast.
+- **Structured errors**: Custom `AppError` types (e.g. `NotFoundError`, `ValidationError`) with correct HTTP status and consistent JSON error payloads including `requestId`.
 
-- **Users**: Authentication and profile management with role-based access
-- **History Content**: Educational articles and historical information
-- **Gallery Items**: Museum artifact and exhibition images with categorization
-- **Bookings**: Tour reservations and visitor management
-- **Forum Posts & Comments**: Community engagement platform with likes
-- **Contact Messages**: Visitor communication system
-- **Groups**: Forum group management with attendant-only access control
+## API base
 
-### API Structure
+All endpoints are under **`/api/v1`** (e.g. `GET /api/v1/health`).
 
-```
-/api/v1
-├── /auth          # Authentication endpoints
-├── /history       # Historical content management
-├── /gallery       # Gallery and media management
-├── /bookings      # Tour booking system
-├── /forum         # Community forum features
-├── /contact       # Contact form and messaging
-├── /admin         # Administrative functions
-├── /users         # User profile management
-└── /ws            # WebSocket real-time communication
-```
+| Area      | Examples                                                                               |
+| --------- | -------------------------------------------------------------------------------------- |
+| Health    | `GET /api/v1/health`                                                                   |
+| Auth      | `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/profile`    |
+| History   | `GET /api/v1/histories`, `GET /api/v1/histories/:id`, `POST /api/v1/histories` (admin) |
+| Gallery   | `GET /api/v1/gallery`, `GET /api/v1/gallery/category/:category`                        |
+| Bookings  | `GET /api/v1/bookings`, `POST /api/v1/bookings`                                        |
+| Forum     | `GET /api/v1/forum/posts`, `POST /api/v1/forum/posts`, `POST /api/v1/forum/likes`      |
+| Contact   | `POST /api/v1/contact`                                                                 |
+| Admin     | Admin-only routes under `/api/v1/admin`                                                |
+| WebSocket | `/ws` on same server                                                                   |
 
-## Getting Started
+Responses use a consistent shape: `{ success, data?, error?, message?, pagination?, requestId? }`. Errors include `requestId` and `timestamp`.
 
-### Prerequisites
+## Quick start
 
-- Node.js 18+ and pnpm (or npm/yarn)
-- PostgreSQL 15+ (local) or Neon account (serverless)
-- Git
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd badagry_backend
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pnpm install
-   ```
-
-3. **Environment setup**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Configure your `.env` file:
-   ```env
-   # Database Configuration
-   DATABASE_URL=postgresql://username:password@localhost:5432/museum
-   # or for Neon: postgresql://user:pass@host/db?sslmode=require
-   
-   # Server Configuration
-   PORT=5001
-   NODE_ENV=development
-   
-   # Session Secret
-   SESSION_SECRET=your-super-secret-session-key
-   
-   # CORS Configuration
-   FRONTEND_URL=http://localhost:3000
-   API_PROD_URL=http://localhost:5001
-   ```
-
-4. **Database setup**
-   ```bash
-   # Generate and run migrations
-   pnpm run db:generate
-   pnpm run db:migrate
-
-   # Sync the database
-   pnpm run db:push
-   
-   # Optional: Seed with sample data
-   pnpm run db:seed
-   ```
-
-5. **Start the development server**
-   ```bash
-   pnpm run dev
-   ```
-
-The API will be available at `http://localhost:5001/api/v1`
-
-## API Documentation
-
-### Authentication Endpoints
-
-```http
-POST /api/v1/auth/register     # User registration
-POST /api/v1/auth/login         # User login
-POST /api/v1/auth/logout        # User logout
-GET  /api/v1/auth/profile       # Get user profile
-PUT  /api/v1/auth/profile       # Update user profile
-```
-
-### Historical Content
-
-```http
-GET    /api/v1/history              # List all historical content
-GET    /api/v1/history/:id          # Get content by ID
-GET    /api/v1/history/slug/:slug   # Get content by slug
-POST   /api/v1/history              # Create new content (admin only)
-PUT    /api/v1/history/:id          # Update content (admin only)
-DELETE /api/v1/history/:id          # Delete content (admin only)
-```
-
-### Gallery Management
-
-```http
-GET  /api/v1/gallery                    # List all gallery items
-GET  /api/v1/gallery/:id                # Get gallery item by ID
-GET  /api/v1/gallery/category/:category # Get items by category
-POST /api/v1/gallery                    # Add new gallery item (admin only)
-PUT  /api/v1/gallery/:id                # Update gallery item (admin only)
-```
-
-### Booking System
-
-```http
-GET  /api/v1/bookings           # List user bookings
-GET  /api/v1/bookings/:id       # Get booking details
-POST /api/v1/bookings           # Create new booking
-PUT  /api/v1/bookings/:id       # Update booking status (attendant/admin)
-```
-
-### Forum Features
-
-```http
-GET  /api/v1/forum/posts        # List forum posts
-GET  /api/v1/forum/posts/:id    # Get post with comments
-POST /api/v1/forum/posts        # Create new post
-POST /api/v1/forum/comments     # Add comment to post
-POST /api/v1/forum/likes        # Like/unlike a post
-```
-
-### Response Format
-
-All API responses follow a consistent format:
-
-```json
-{
-  "success": true,
-  "data": {...},
-  "message": "Operation successful",
-  "pagination": {
-    "total": 100,
-    "hasMore": true,
-    "offset": 0,
-    "limit": 20
-  }
-}
-```
-
-## Configuration
-
-### Database Configuration
-
-The system supports both local PostgreSQL and Neon serverless databases:
-
-- **Local Development**: Uses `pg` with connection pooling
-- **Production**: Supports Neon serverless with WebSocket configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | Required |
-| `PORT` | Server port | 5001 |
-| `NODE_ENV` | Environment mode | development |
-| `SESSION_SECRET` | Session encryption key | Required |
-| `FRONTEND_URL` | CORS allowed origin | http://localhost:3000 |
-| `API_PROD_URL` | Production server URI | http://localhost:5001 |
-
-## Development
-
-### Available Scripts
+**Requirements:** Node.js 18+, pnpm 8+
 
 ```bash
-pnpm run dev          # Start development server with hot reload
-pnpm run build        # Build TypeScript to JavaScript
-pnpm run start        # Start production server
-pnpm run check        # Type check without emitting files
-pnpm run lint         # Run ESLint
-pnpm run test         # Run tests
-pnpm run db:generate  # Generate database migrations
-pnpm run db:migrate   # Run database migrations
-pnpm run db:push      # Push schema changes to database
-pnpm run db:seed      # Seed database with sample data
-pnpm run db:reset     # Reset database
+git clone <repo-url>
+cd repo_name
+pnpm install
+cp .env.example .env   # then set DATABASE_URL, SESSION_SECRET, FRONTEND_URL, etc.
+pnpm run db:push       # or db:migrate
+pnpm run dev           # http://localhost:5001
 ```
 
-### Project Structure
+- **API base:** [http://localhost:5001/api/v1](http://localhost:5001/api/v1)
+- **Interactive API docs (Swagger UI):** [http://localhost:5001/api-docs](http://localhost:5001/api-docs)
+- **OpenAPI JSON:** [http://localhost:5001/api-docs.json](http://localhost:5001/api-docs.json)
 
-```
-.
-├── config/           # Configuration files
-│   ├── auth/         # Authentication configuration
-│   ├── bucket-storage/ # File upload configuration
-│   ├── cors/         # CORS configuration
-│   └── database/     # Database connection and schema
-├── middlewares/      # Express middlewares
-│   └── errors/       # Error handling
-├── server/
-│   ├── controllers/  # Request handlers
-│   ├── routes/       # Route definitions
-│   ├── services/     # Business logic
-│   └── utils/        # Utility functions
-├── dist/             # Compiled JavaScript
-├── drizzle/          # Database migrations
-└── logs/             # Application logs
-```
+**Important env vars**
+
+| Variable            | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`      | PostgreSQL URL (dev)                                  |
+| `DATABASE_URL_PROD` | Production DB (e.g. Neon)                             |
+| `SESSION_SECRET`    | Min 32 chars                                          |
+| `FRONTEND_URL`      | Allowed CORS origin (default `http://localhost:3000`) |
+| `CORS_ORIGINS`      | Optional comma-separated extra origins                |
+| `PORT`              | Server port (default `5001`)                          |
+
+## Scripts
+
+| Command                                       | Purpose                                        |
+| --------------------------------------------- | ---------------------------------------------- |
+| `pnpm run dev`                                | Dev server with hot reload                     |
+| `pnpm run build` / `pnpm start`               | Production build and run                       |
+| `pnpm run check`                              | TypeScript check                               |
+| `pnpm run test`                               | Unit + integration tests (includes CORS tests) |
+| `pnpm run lint`                               | ESLint                                         |
+| `pnpm run db:push` / `db:migrate` / `db:seed` | Database                                       |
+
+## Security & performance
+
+- **CORS**: Env-based allowed origins (no wildcard when using credentials); preflight and headers tested.
+- **Helmet**: Security headers (CSP, HSTS, etc.).
+- **Rate limiting**: Applied on login and sensitive routes.
+- **Request tracing**: `X-Request-ID` on every response; structured logging with request IDs.
+- **Health**: `/api/v1/health` returns DB status and version; 503 when DB is down.
 
 ## Testing
 
-```bash
-# Run all tests
-pnpm test
-
-# Run tests in watch mode
-pnpm run test:watch
-
-# Run linting
-pnpm run lint
-```
+- Unit tests for services (e.g. history service).
+- CORS tests: allowed origin gets `Access-Control-Allow-Origin`, preflight returns 204, disallowed origin rejected.
+- Run: `pnpm test`.
 
 ## Deployment
 
-### Local Deployment
+- Build: `pnpm run build` then `node dist/index.js` (or `pnpm start`).
+- Set `NODE_ENV=production`, `DATABASE_URL_PROD`, `API_PROD_URL`, and a strong `SESSION_SECRET`.
+- Suitable for Node hosts (e.g. Render, Railway, Fly.io).
 
-```bash
-pnpm run build
-pnpm start
+## Project structure
+
 ```
-
-### Cloud Deployment
-
-The API is optimized for deployment on:
-- Render (serverless functions)
-- Other Node.js hosting platforms
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Maintain test coverage above 80%
-- Use conventional commit messages
-- Update documentation for new features
-- Ensure backward compatibility
-- Follow RESTful API design principles
-
-## Security Features
-
-- Password hashing with bcrypt
-- Session-based authentication
-- Role-based access control
-- Rate limiting on login endpoints
-- CORS configuration
-- Input validation with Zod
-- SQL injection prevention via Drizzle ORM
-- Secure session cookies
+├── app.ts                 # Express app factory (no server listen)
+├── index.ts               # Entry: env, createApp, registerRoutes, listen
+├── config/                # Env, auth, CORS, DB, OpenAPI, security
+├── middlewares/           # Request ID, rate limit, errors, not-found
+├── server/
+│   ├── routes/            # Route modules mounted under /api/v1
+│   ├── controllers/       # Request/response handling
+│   ├── services/          # Business logic
+│   └── types/             # API response types
+├── docs/                  # Feature summary, architecture notes
+└── drizzle/               # Migrations
+```
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Support
-
-For questions, issues, or contributions, please refer to the project repository or contact the development team.
+MIT.
