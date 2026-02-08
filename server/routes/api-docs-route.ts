@@ -10,16 +10,18 @@ function getSpecCopy(): Record<string, unknown> {
   return JSON.parse(JSON.stringify(spec)) as Record<string, unknown>;
 }
 
+const swaggerUiOptions = {
+  explorer: true,
+  deepLinking: true,
+  persistAuthorization: true,
+  docExpansion: "list",
+} as const;
+
 export function mountApiDocs(app: ExpressApp): void {
   app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(getSpecCopy(), {
-      explorer: true,
-      deepLinking: true,
-      persistAuthorization: true,
-      docExpansion: "list",
-    })
+    swaggerUi.setup(getSpecCopy(), swaggerUiOptions as Record<string, unknown>)
   );
   app.get("/api-docs.json", (_req: unknown, res: ExpressResponse) => {
     res.json(getSpecCopy());

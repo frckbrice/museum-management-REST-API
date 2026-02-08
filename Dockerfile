@@ -11,6 +11,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
 COPY index.ts app.ts ./
+COPY types types/
 COPY config config/
 COPY middlewares middlewares/
 COPY server server/
