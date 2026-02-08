@@ -4,7 +4,8 @@ import { requireAdmin } from "../../config/auth/auth-config";
 
 const router = Router();
 
-// router.use(requireAdmin);
+// All admin routes require admin role
+router.use(requireAdmin);
 
 // Get all contact messages (admin only)
 router.get("/admin/contact-messages", adminController.getAllContactMessages);

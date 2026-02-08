@@ -11,6 +11,10 @@
   <img src="https://img.shields.io/badge/WebSocket-ws-010101?style=flat-square&logo=socket.io&logoColor=white" alt="WebSocket" />
 </p>
 
+<p align="center">
+  <img src="public/assets/images/museum%20management%20api.png" alt="Museum Management API" width="100%" />
+</p>
+
 Production-ready REST API for a digital museum platform: content, auth, bookings, forum, and real-time features. Built with a **modular, microservice-friendly** design and standard Web API practices.
 
 ## Key features

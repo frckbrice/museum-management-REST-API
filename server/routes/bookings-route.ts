@@ -2,32 +2,29 @@ import { Router } from "express";
 import { WebSocketServer } from "ws";
 
 import { bookingController } from "../controllers";
+import { requireAuth, requireAttendant } from "../../config/auth/auth-config";
 
 export default function bookingRoutes(wss: WebSocketServer) {
   const router = Router();
 
-  // Create a booking
+  // Create a booking (optional auth: session sets userId if present)
   router.post("/bookings", async (req, res) =>
     (await bookingController.createBooking(req, res))(wss)
   );
 
-  // Get bookings (user-specific or all based on user type)
-  router.get("/bookings", bookingController.getAllBookings);
+  // Get bookings (authenticated; visitors see own, attendants/admins see all)
+  router.get("/bookings", requireAuth, bookingController.getAllBookings);
 
-  // Get booking by ID
-  router.get("/bookings/:id", bookingController.getBookingById);
+  // More specific paths before /bookings/:id (RESTful route order)
+  router.get("/bookings/users/:userId", requireAuth, bookingController.getBookingsByUserId);
+  router.patch(
+    "/bookings/attendant/:id/status",
+    requireAttendant,
+    bookingController.updateBookingStatus
+  );
 
-  // Update booking status (attendant-specific)
-  router.patch("/bookings/attendant/:id/status", bookingController.updateBookingStatus);
-
-  // get specific booking for a user by id
-  router.get("/bookings/users/:userId", bookingController.getBookingsByUserId);
-
-  // get booking by id
-  router.get("/bookings/:id", bookingController.getBookingById);
-
-  // delete booking
-  // router.delete("/bookings/:id", bookingController.deleteBooking);
+  // Get booking by ID (authenticated)
+  router.get("/bookings/:id", requireAuth, bookingController.getBookingById);
 
   return router;
 }

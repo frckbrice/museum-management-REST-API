@@ -86,7 +86,7 @@ export class UserController {
     try {
       const { email } = req.params;
       await userService.deleteUserByEmail(email);
-      res.sendStatus(204).send({ message: "User deleted successfully" });
+      res.sendStatus(204);
     } catch (error) {
       res.status(500).json({ error: "Failed to delete user" });
     }
@@ -97,9 +97,9 @@ export class UserController {
     try {
       const { id } = req.params;
       await userService.deleteUserById(id);
-      res.sendStatus(204).send({ message: "User deleted successfully" });
+      res.sendStatus(204);
     } catch (error) {
-      console.error("\n\n 💥💥💥💥💥💥💥💥💥 rror deleting user:", error);
+      console.error("Error deleting user:", error);
       res.status(500).json({ error: "Failed to delete user" });
     }
   }

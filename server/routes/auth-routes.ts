@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
 import { userService } from "../services";
-import { hashPassword } from "../../config/auth/auth-config";
+import { hashPassword, requireAuth } from "../../config/auth/auth-config";
 
 const authRoute = Router();
 
@@ -57,8 +57,8 @@ authRoute.post("/login", (req, res, next) => {
   )(req, res, next);
 });
 
-// Logout endpoint
-authRoute.post("/logout", (req, res, next) => {
+// Logout endpoint (authenticated only per API spec)
+authRoute.post("/logout", requireAuth, (req, res, next) => {
   req.logout((err) => {
     if (err) {
       console.log("\n\n Logging out user:", err);

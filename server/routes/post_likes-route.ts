@@ -1,10 +1,13 @@
-// routes/user.routes.ts
 import { Router } from "express";
 import { postLikesController } from "../controllers";
+import { requireAuth } from "../../config/auth/auth-config";
 
 const router = Router();
 
-router.post("/post_likes", postLikesController.likePost);
-router.delete("/post_likes", postLikesController.unlikePost);
+// Like a post (authenticated per API spec)
+router.post("/post_likes", requireAuth, postLikesController.likePost);
+
+// Unlike a post (authenticated per API spec)
+router.delete("/post_likes", requireAuth, postLikesController.unlikePost);
 
 export default router;
