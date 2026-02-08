@@ -20,22 +20,22 @@ export const postLikeService = new PostLikeService();
 
 // Export individual class services for direct access
 export {
-    UserService,
-    HistoryService,
-    GalleryService,
-    BookingService,
-    ForumService,
-    ContactService,
-    SessionService
+  UserService,
+  HistoryService,
+  GalleryService,
+  BookingService,
+  ForumService,
+  ContactService,
+  SessionService,
 };
 
 // Export types for better type safety
 export type {
-    User,
-    HistoryContent,
-    GalleryItem,
-    Booking,
-    Post,
-    Comment,
-    ContactMessage
+  User,
+  HistoryContent,
+  GalleryItem,
+  Booking,
+  Post,
+  Comment,
+  ContactMessage,
 } from "../../config/database/schema/schema-types";

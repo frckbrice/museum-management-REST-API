@@ -1,0 +1,2 @@
+# Ignore entire OpenAPI spec folder (manual formatting; braces must not be stripped)
+*

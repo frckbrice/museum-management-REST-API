@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { historyController } from '../controllers';
+import { historyController } from "../controllers";
 
 const router = Router();
 
@@ -21,6 +21,5 @@ router.delete("/histories/:id", historyController.deleteHistoryContent);
 // get content by id
 // Get history content by slug
 router.get("/histories/:id", historyController.getHistoryContentById);
-
 
 export default router;

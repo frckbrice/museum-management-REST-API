@@ -1,0 +1,37 @@
+# Dependencies and build output
+node_modules
+dist
+.pnpm-store
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.code-workspace
+
+# Env and secrets (use runtime env or secrets)
+.env
+.env.*
+!.env.example
+
+# Tests and coverage
+coverage
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+jest.setup.js
+
+# Docs and misc
+docs
+*.md
+!README.md
+
+# CI
+.github
+
+# Local and OS
+.DS_Store
+Thumbs.db
+*.log

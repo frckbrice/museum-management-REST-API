@@ -1,6 +1,8 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express, NextFunction, Response } from "express";
+import { Response } from "express";
+import type { ExpressApp, ExpressNext } from "../../types/express-app";
+import { UnauthorizedError, ForbiddenError } from "../../middlewares/errors/error-handler";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -9,119 +11,118 @@ import { User as SelectUser } from "../database/schema/schema-types";
 import bcrypt from "bcrypt";
 
 declare global {
-    namespace Express {
-        interface User extends SelectUser { }
-    }
+  namespace Express {
+    interface User extends SelectUser { }
+  }
 }
 
 const scryptAsync = promisify(scrypt);
 
 export async function hashPassword(password: string) {
-    const salt = await bcrypt.genSalt(10); // async version
-    const hashed = await bcrypt.hash(password, salt);
+  const salt = await bcrypt.genSalt(10); // async version
+  const hashed = await bcrypt.hash(password, salt);
 
-    return hashed;
+  return hashed;
 }
-
 
 export async function comparePasswords(supplied: string, stored: string) {
-    const match = await bcrypt.compare(supplied, stored);
+  const match = await bcrypt.compare(supplied, stored);
 
-    return match;
+  return match;
 }
 
+import { env } from "../env/env-validation";
 
-export function configureAuth(app: Express) {
-    const sessionSecret = process.env.SESSION_SECRET || "museum_secret";
+export function configureAuth(app: ExpressApp) {
+  const sessionSettings: session.SessionOptions = {
+    secret: env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: sessionService.getSessionStore(),
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+    },
+  };
 
-    const sessionSettings: session.SessionOptions = {
-        secret: sessionSecret,
-        resave: false,
-        saveUninitialized: false,
-        store: sessionService.getSessionStore(),
-        cookie: {
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-        }
-    };
+  // Configure session and passport
+  app.set("trust proxy", 1);
+  app.use(session(sessionSettings));
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-    // Configure session and passport
-    app.set("trust proxy", 1);
-    app.use(session(sessionSettings));
-    app.use(passport.initialize());
-    app.use(passport.session());
-
-    // Configure passport strategy
-    passport.use(
-        new LocalStrategy({
-            usernameField: 'username', // or 'emailOrUsername' if that's what you're sending
-            passwordField: 'password'
-        }, async (username, password, done) => {
-
-
-            try {
-                // Check if input is email or username
-                let user;
-                if (username.includes('@')) {
-                    user = await userService.getUserByEmail(username);
-                } else {
-                    user = await userService.getUserByUsername(username);
-                }
-
-                if (!user || !(await comparePasswords(password, user.password))) {
-                    return done(null, false);
-                } else {
-                    return done(null, user);
-                }
-            } catch (error) {
-                return done(error);
-            }
-        }),
-    );
-
-    // Serialize/deserialize user for session
-    passport.serializeUser((user, done) => done(null, user.id));
-
-    passport.deserializeUser(async (id: string, done) => {
+  // Configure passport strategy
+  passport.use(
+    new LocalStrategy(
+      {
+        usernameField: "username", // or 'emailOrUsername' if that's what you're sending
+        passwordField: "password",
+      },
+      async (username, password, done) => {
         try {
-            const user = await userService.getUser(id);
-            done(null, user);
+          // Check if input is email or username
+          let user;
+          if (username.includes("@")) {
+            user = await userService.getUserByEmail(username);
+          } else {
+            user = await userService.getUserByUsername(username);
+          }
+
+          if (!user || !(await comparePasswords(password, user.password))) {
+            return done(null, false);
+          } else {
+            return done(null, user);
+          }
         } catch (error) {
-            done(error);
+          return done(error);
         }
-    });
+      }
+    )
+  );
+
+  // Serialize/deserialize user for session
+  passport.serializeUser((user, done) => done(null, user.id));
+
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      const user = await userService.getUser(id);
+      done(null, user);
+    } catch (error) {
+      done(error);
+    }
+  });
 }
 
 // Authentication middleware
-export function requireAuth(req: Express.Request, res: Response, next: NextFunction) {
-    if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Authentication required" });
-    }
-    next();
+export function requireAuth(req: Express.Request, _res: Response, next: ExpressNext) {
+  if (!req.isAuthenticated()) {
+    return next(new UnauthorizedError("Authentication required"));
+  }
+  next();
 }
 
 // Role-based middleware
-export function requireAttendant(req: Express.Request, res: Response, next: NextFunction) {
-    if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Authentication required" });
-    }
+export function requireAttendant(req: Express.Request, _res: Response, next: ExpressNext) {
+  if (!req.isAuthenticated()) {
+    return next(new UnauthorizedError("Authentication required"));
+  }
 
-    if (req.user.userType !== 'attendant' && req.user.userType !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
-    }
+  if (req.user.userType !== "attendant" && req.user.userType !== "admin") {
+    return next(new ForbiddenError("Access denied"));
+  }
 
-    next();
+  next();
 }
 
-export function requireAdmin(req: Express.Request, res: Response, next: NextFunction) {
-    if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Authentication required" });
-    }
+export function requireAdmin(req: Express.Request, _res: Response, next: ExpressNext) {
+  if (!req.isAuthenticated()) {
+    return next(new UnauthorizedError("Authentication required"));
+  }
 
-    if (req.user.userType !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
-    }
+  if (req.user.userType !== "admin") {
+    return next(new ForbiddenError("Access denied"));
+  }
 
-    next();
+  next();
 }

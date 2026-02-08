@@ -4,7 +4,18 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import schemas from "./tables";
 
-const { bookings, comments, groupMembers, groups, historyContent, postLikes, posts, users, galleryItems, contactMessages } = schemas;
+const {
+  bookings,
+  comments,
+  groupMembers,
+  groups,
+  historyContent,
+  postLikes,
+  posts,
+  users,
+  galleryItems,
+  contactMessages,
+} = schemas;
 
 // Schema validations (remain the same as your original)
 export const insertUserSchema = createInsertSchema(users, {
@@ -15,19 +26,19 @@ export const insertUserSchema = createInsertSchema(users, {
 }).omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 });
 
 export const insertHistoryContentSchema = createInsertSchema(historyContent).omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 });
 
 export const insertGalleryItemSchema = createInsertSchema(galleryItems).omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 });
 
 export const insertBookingSchema = createInsertSchema(bookings)
@@ -39,19 +50,19 @@ export const insertBookingSchema = createInsertSchema(bookings)
     id: true,
     status: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
   });
 
 export const insertPostSchema = createInsertSchema(posts).omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 });
 
 export const insertCommentSchema = createInsertSchema(comments).omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 });
 
 export const insertContactMessageSchema = createInsertSchema(contactMessages)
@@ -62,12 +73,12 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages)
   .omit({
     id: true,
     isRead: true,
-    createdAt: true
+    createdAt: true,
   });
 
 const postLikeSchema = createInsertSchema(postLikes).omit({
   id: true,
-  createdAt: true
+  createdAt: true,
 });
 
 export const insertPostLikeSchema = postLikeSchema.extend({
@@ -75,19 +86,17 @@ export const insertPostLikeSchema = postLikeSchema.extend({
   userId: z.string().uuid(),
 });
 
-export const insertGroupSchema = createInsertSchema(groups)
-  .omit({
-    id: true,
-    isAttendantOnly: true,
-    createdAt: true,
-    updatedAt: true
-  });
+export const insertGroupSchema = createInsertSchema(groups).omit({
+  id: true,
+  isAttendantOnly: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
   id: true,
-  createdAt: true
+  createdAt: true,
 });
-
 
 // Types for TypeScript
 export type User = typeof users.$inferSelect;

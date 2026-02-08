@@ -1,0 +1,23 @@
+# Dependencies and build
+node_modules
+dist
+build
+*.min.js
+
+# Lockfiles and generated
+pnpm-lock.yaml
+package-lock.json
+*.config.js
+
+# Drizzle and migrations (generated)
+drizzle/**/*.sql
+
+# Env (secrets)
+.env
+.env.*
+!.env.example
+
+# OpenAPI spec (manual formatting; do not strip curly braces or reformat)
+config/openapi/
+config/openapi/spec.ts
+**/config/openapi/**

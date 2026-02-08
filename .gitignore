@@ -8,7 +8,7 @@ logs
 config/database/reset-db.ts
 todo-tasks.md
 config/database/seed.ts
-config/database/badagry_backend.code-workspace.json
+config/database/museum-management.code-workspace*
 .DS_Store
 *.swp
 *.swo

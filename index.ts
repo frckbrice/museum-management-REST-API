@@ -1,69 +1,44 @@
-import express from "express";
+/**
+ * Entry point — validate env, create app, register routes, start server.
+ * App is built in a modular way so it can be tested without listening
+ * and domains can be split into microservices later.
+ */
+// Validate env first (throws and exits if invalid)
+import { env } from "./config/env/env-validation";
+import { createApp } from "./app";
 import { registerRoutes } from "./server/routes";
-import cors from "cors";
-import corsOptions from "./config/cors/cors-options";
-import dotenv from "dotenv";
 import errorHandler from "./middlewares/errors/error-handler";
-import { getServerConfig } from "./server/utils/helper-function";
+import { logger } from "./config/logger/logger-config";
 
+const PORT = env.PORT;
 
-dotenv.config();
-
-const PORT = process.env.PORT || 5001;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-// cors
-app.use(cors(corsOptions));
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api/v1")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      console.log(logLine);
-    }
-  });
-
-  next();
+// Log uncaught errors so nodemon shows why the process exited
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled rejection at", promise, "reason:", reason);
+  process.exit(1);
 });
 
 (async () => {
-  const serverConfig = getServerConfig();
+  try {
+    const app = createApp();
+    const server = await registerRoutes("/api/v1", app);
+    app.use(errorHandler);
 
-  const server = await registerRoutes("/api/v1", app);
-
-  app.use(errorHandler);
-
-  server.listen(
-    PORT,
-    () => {
-      console.log(`🚀 Server running in ${NODE_ENV} mode`);
-      console.log(`🌐 Server URL: ${serverConfig.url}`);
-      console.log(`📡 Server is  Listening on ${serverConfig.host}:${serverConfig.port}`);
-
-    }
-  );
+    server.listen(PORT, () => {
+      logger.info("Server started successfully", {
+        mode: env.NODE_ENV,
+        port: PORT,
+        basePath: "/api/v1",
+      });
+    });
+  } catch (err) {
+    console.error("Startup error:", err);
+    process.exit(1);
+  }
 })();
 
-export default app;
+export default createApp;
